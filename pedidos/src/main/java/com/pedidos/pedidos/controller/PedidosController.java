@@ -5,12 +5,14 @@
 package com.pedidos.pedidos.controller;
 
 import com.pedidos.pedidos.common.ValidationException;
+import com.pedidos.pedidos.common.ValidationForm;
 import com.pedidos.pedidos.model.Pedido;
 import com.pedidos.pedidos.model.Producto;
 import com.pedidos.pedidos.services.PedidosServices;
 import java.sql.SQLException;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,11 +38,6 @@ public class PedidosController {
     @Autowired
     private PedidosServices service;
 
-    @GetMapping("/saludo")
-    public String saludo(@RequestParam(value = "name", defaultValue = "World") String name) {
-        return "HOLA " + name;
-    }
-
     @GetMapping("/producto/{id}")
     public ResponseEntity getProducto(@PathVariable String id) {
 
@@ -55,6 +52,12 @@ public class PedidosController {
 
     @PostMapping("/producto")
     public ResponseEntity registProducto(@RequestBody Producto producto) {
+        //Validando datos
+        Map valRes = ValidationForm.getViolationsMessage(producto);
+
+        if (!(Boolean) valRes.get("success")) {
+            return new ResponseEntity(valRes.get("result"), HttpStatus.BAD_REQUEST);
+        }
 
         try {
             service.saveProducto(producto);
@@ -70,6 +73,12 @@ public class PedidosController {
 
     @PutMapping("/producto")
     public ResponseEntity updateProducto(@RequestBody Producto producto) {
+        //Validando datos
+        Map valRes = ValidationForm.getViolationsMessage(producto);
+
+        if (!(Boolean) valRes.get("success")) {
+            return new ResponseEntity(valRes.get("result"), HttpStatus.BAD_REQUEST);
+        }
 
         try {
             service.updateProducto(producto);
@@ -109,6 +118,12 @@ public class PedidosController {
 
     @PostMapping("/pedido")
     public ResponseEntity registPedido(@RequestBody Pedido pedido) {
+        //Validando datos
+        Map valRes = ValidationForm.getViolationsMessage(pedido);
+
+        if (!(Boolean) valRes.get("success")) {
+            return new ResponseEntity(valRes.get("result"), HttpStatus.BAD_REQUEST);
+        }
 
         try {
             service.savePedido(pedido);
@@ -121,6 +136,12 @@ public class PedidosController {
 
     @PutMapping("/pedido")
     public ResponseEntity updatePedido(@RequestBody Pedido pedido) {
+        //Validando datos
+        Map valRes = ValidationForm.getViolationsMessage(pedido);
+
+        if (!(Boolean) valRes.get("success")) {
+            return new ResponseEntity(valRes.get("result"), HttpStatus.BAD_REQUEST);
+        }
 
         try {
             service.updatePedido(pedido);

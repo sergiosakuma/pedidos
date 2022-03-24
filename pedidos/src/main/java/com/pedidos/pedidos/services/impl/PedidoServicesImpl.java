@@ -8,6 +8,7 @@ import com.pedidos.pedidos.common.ValidationException;
 import com.pedidos.pedidos.model.Pedido;
 import com.pedidos.pedidos.model.Producto;
 import com.pedidos.pedidos.services.PedidosServices;
+import com.sun.media.jfxmedia.logging.Logger;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -19,6 +20,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  *
@@ -27,16 +30,67 @@ import org.springframework.stereotype.Service;
 @Service
 public class PedidoServicesImpl implements PedidosServices {
 
-    //private final String DRIVER = "org.apache.derby.jdbc.EmbeddedDriver";
-    private final String DRIVER = "org.apache.derby.jdbc.ClientDriver";
-    //private final String PROTOCOL = "jdbc:derby:";
-    private final String PROTOCOL = "jdbc:derby://localhost:1527/";
+    private final String DRIVER = "org.apache.derby.jdbc.EmbeddedDriver";
+    //private final String DRIVER = "org.apache.derby.jdbc.ClientDriver";
+    private final String PROTOCOL = "jdbc:derby:memory:";
+    //private final String PROTOCOL = "jdbc:derby://localhost:1527/";
     private static Connection conn = null;
 
     public PedidoServicesImpl() throws Exception {
         //DriverManager.registerDriver(new EmbeddedDriver());
         Class.forName(DRIVER).newInstance();
-        conn = DriverManager.getConnection(PROTOCOL + "Pedidos;create=true");
+        conn = DriverManager.getConnection(PROTOCOL + "Pedido;create=true");
+
+        initDataBase();
+    }
+
+    /**
+     * Inicializa base de datos
+     *
+     * @throws SQLException
+     */
+    private void initDataBase() {
+        try ( Statement p = conn.createStatement()) {
+            String query = "CREATE TABLE PEDIDOS(ID BIGINT NOT NULL PRIMARY KEY GENERATED ALWAYS AS IDENTITY"
+                    + "    (START WITH 1, INCREMENT BY 1), DESCRIPCION VARCHAR(256), FECHA TIMESTAMP, DISABLED BOOLEAN DEFAULT FALSE)";
+            p.execute(query);
+
+            query = "CREATE TABLE PRODUCTOS(ID VARCHAR(50) NOT NULL PRIMARY KEY, NOMBRE VARCHAR(256), DISABLED BOOLEAN DEFAULT FALSE)";
+            p.execute(query);
+
+            query = "CREATE TABLE PEDIDOS_PRODUCTOS (ID BIGINT NOT NULL PRIMARY KEY GENERATED ALWAYS AS IDENTITY "
+                    + "    (START WITH 1, INCREMENT BY 1), ID_PEDIDO BIGINT, ID_PRODUCTO VARCHAR(50), DISABLED BOOLEAN DEFAULT FALSE,"
+                    + "	CONSTRAINT FK_PEDIDO FOREIGN KEY (ID_PEDIDO) REFERENCES PEDIDOS(ID),"
+                    + "	CONSTRAINT FK_PRODUCTOS FOREIGN KEY (ID_PRODUCTO) REFERENCES PRODUCTOS(ID))";
+            p.execute(query);
+
+            query = "INSERT INTO PEDIDOS(DESCRIPCION, FECHA) values ('PEDIDO 1', '2022-01-03 10:55:55')";
+            p.execute(query);
+            query = "INSERT INTO PEDIDOS(DESCRIPCION, FECHA) values ('PEDIDO 2', '2022-02-13 15:22:55')";
+            p.execute(query);
+            query = "INSERT INTO PEDIDOS(DESCRIPCION, FECHA) values ('PEDIDO 3', '2022-01-03 13:33:55')";
+            p.execute(query);
+            query = "INSERT INTO PRODUCTOS(ID, NOMBRE) values ('p1', 'PRODUCTO 1')";
+            p.execute(query);
+            query = "INSERT INTO PRODUCTOS(ID, NOMBRE) values ('p2', 'PRODUCTO 2')";
+            p.execute(query);
+            query = "INSERT INTO PRODUCTOS(ID, NOMBRE) values ('p3', 'PRODUCTO 3')";
+            p.execute(query);
+            query = "INSERT INTO PRODUCTOS(ID, NOMBRE) values ('p4', 'PRODUCTO 4')";
+            p.execute(query);
+            query = "INSERT INTO PRODUCTOS(ID, NOMBRE) values ('p5', 'PRODUCTO 5')";
+            p.execute(query);
+            query = "INSERT INTO PRODUCTOS(ID, NOMBRE) values ('p6', 'PRODUCTO 6')";
+            p.execute(query);
+            query = "INSERT INTO PEDIDOS_PRODUCTOS(ID_PEDIDO, ID_PRODUCTO) values (1, 'p1')";
+            p.execute(query);
+            query = "INSERT INTO PEDIDOS_PRODUCTOS(ID_PEDIDO, ID_PRODUCTO) values (2, 'p2')";
+            p.execute(query);
+            query = "INSERT INTO PEDIDOS_PRODUCTOS(ID_PEDIDO, ID_PRODUCTO) values (3, 'p3')";
+            p.execute(query);
+        } catch (Exception e) {
+            Logger.logMsg(Logger.WARNING, e.getMessage());
+        }
     }
 
     public Connection getConn() {
@@ -62,11 +116,6 @@ public class PedidoServicesImpl implements PedidosServices {
 
     @Override
     public void saveProducto(Producto producto) throws ValidationException, SQLException {
-
-        if (producto.getId() == null || producto.getId().isEmpty()) {
-            throw new ValidationException("Falta id del producto.");
-        }
-
         String query = "insert into productos (id, nombre) values ('" + producto.getId() + "','"
                 + producto.getNombre() + "')";
         int res;
@@ -84,7 +133,7 @@ public class PedidoServicesImpl implements PedidosServices {
     public void updateProducto(Producto producto) throws ValidationException, SQLException {
 
         if (producto.getId() == null || producto.getId().isEmpty()) {
-            throw new ValidationException("Falta id del pedido.");
+            throw new ValidationException("Falta id del producto.");
         }
 
         String query = "update productos set nombre='" + producto.getNombre()
@@ -133,15 +182,22 @@ public class PedidoServicesImpl implements PedidosServices {
         //throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 
+    @Transactional(rollbackFor = Exception.class)
     @Override
     public void savePedido(Pedido pedido) throws Exception {
         SimpleDateFormat dformat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        String cdate = dformat.format(new Date());
+
+        if (pedido.getFecha() != null) {
+            cdate = dformat.format(pedido.getFecha());
+        }
+
         String query = "insert into pedidos (descripcion,fecha) values ('" + pedido.getDescripcion() + "','"
-                + dformat.format(pedido.getFecha()) + "')";
+                + cdate + "')";
         int res;
 
         try ( Statement p = conn.createStatement()) {
-            p.executeUpdate(query, new String[]{"id"});
+            p.executeUpdate(query, new String[]{"ID"});
             ResultSet key = p.getGeneratedKeys();
             key.next();
             pedido.setId(key.getInt(1));
@@ -163,6 +219,7 @@ public class PedidoServicesImpl implements PedidosServices {
         }
     }
 
+    @Transactional(rollbackFor = Exception.class)
     @Override
     public void updatePedido(Pedido pedido) throws ValidationException, SQLException {
 
@@ -170,7 +227,15 @@ public class PedidoServicesImpl implements PedidosServices {
             throw new ValidationException("Falta id del pedido.");
         }
 
-        String query = "update pedidos set descripcion='" + pedido.getDescripcion() + "'"
+        SimpleDateFormat dformat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        String cdate = dformat.format(new Date());
+
+        if (pedido.getFecha() != null) {
+            cdate = dformat.format(pedido.getFecha());
+        }
+
+        String query = "update pedidos set descripcion='" + pedido.getDescripcion() + "',"
+                + " fecha='" + cdate + "'"
                 + " where id=" + pedido.getId();
         int res;
 

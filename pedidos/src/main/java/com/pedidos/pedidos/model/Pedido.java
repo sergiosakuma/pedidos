@@ -4,8 +4,11 @@
  */
 package com.pedidos.pedidos.model;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import java.util.Date;
 import java.util.List;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 
 /**
  *
@@ -14,7 +17,11 @@ import java.util.List;
 public class Pedido {
 
     private Integer id;
+
+    @NotNull
+    @NotEmpty
     private String descripcion;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private Date fecha;
     private List<Producto> productos;
 

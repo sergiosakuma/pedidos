@@ -4,6 +4,9 @@
  */
 package com.pedidos.pedidos.model;
 
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
+
 /**
  *
  * @author kenji
@@ -11,6 +14,9 @@ package com.pedidos.pedidos.model;
 public class Producto {
 
     private String id;
+    
+    @NotNull
+    @NotEmpty
     private String nombre;
 
     public Producto() {

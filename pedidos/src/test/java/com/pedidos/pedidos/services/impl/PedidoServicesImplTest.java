@@ -65,7 +65,7 @@ public class PedidoServicesImplTest {
     public void testSaveProducto() throws Exception {
         Date d = new Date();
         System.out.println("saveProducto");
-        Producto producto = new Producto("p" + d.getSeconds(), "Nombre " + d.getTime());
+        Producto producto = new Producto("p10", "Nombre " + d.getTime());
         PedidoServicesImpl instance = new PedidoServicesImpl();
         instance.saveProducto(producto);
     }
@@ -88,7 +88,7 @@ public class PedidoServicesImplTest {
     @Test
     public void testDeleteProducto() throws Exception {
         System.out.println("deleteProducto");
-        String id = "p38";
+        String id = "p10";
         PedidoServicesImpl instance = new PedidoServicesImpl();
         instance.deleteProducto(id);
     }
@@ -112,12 +112,12 @@ public class PedidoServicesImplTest {
     public void testSavePedido() throws Exception {
         Date d = new Date();
         Random r = new Random();
-        int num = r.nextInt(999999999);
+        int num = 99;
         System.out.println("savePedido");
         List<Producto> prods = new ArrayList<>();
         prods.add(new Producto("p1", "producto " + num));
         prods.add(new Producto("p2", "producto " + num));
-        prods.add(new Producto("p5", "producto " + num));
+        prods.add(new Producto("p3", "producto " + num));
 
         Pedido pedido = new Pedido(null, "Pedido " + d.getTime(), prods);
         PedidoServicesImpl instance = new PedidoServicesImpl();
@@ -135,10 +135,10 @@ public class PedidoServicesImplTest {
         int num = r.nextInt(999999999);
         System.out.println("savePedido");
         List<Producto> prods = new ArrayList<>();
-        prods.add(new Producto("p5", "producto " + num));
-        prods.add(new Producto("p6", "producto " + num));
+        prods.add(new Producto("p2", "producto " + num));
+        prods.add(new Producto("p3", "producto " + num));
 
-        Pedido pedido = new Pedido(18, "Pedido " + d.getTime(), prods);
+        Pedido pedido = new Pedido(1, "Pedido " + d.getTime(), prods);
         PedidoServicesImpl instance = new PedidoServicesImpl();
         instance.updatePedido(pedido);
     }
@@ -149,7 +149,7 @@ public class PedidoServicesImplTest {
     @Test
     public void testDeletePedido() throws Exception {
         System.out.println("deletePedido");
-        Integer id = 18;
+        Integer id = 1;
         PedidoServicesImpl instance = new PedidoServicesImpl();
         instance.deletePedido(id);
     }
@@ -187,7 +187,7 @@ public class PedidoServicesImplTest {
     public void testFindProductoPedido() throws Exception {
         System.out.println("findProductoPedido");
         PedidoServicesImpl instance = new PedidoServicesImpl();
-        List<Producto> res = instance.findProductoPedido(5);
+        List<Producto> res = instance.findProductoPedido(1);
         System.out.println("size: " + res.size());
 
         assertTrue(res.size() > 0);
